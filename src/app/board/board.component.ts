@@ -9,6 +9,8 @@ import { BoardService } from '../board.service';
 import {
   BLOCK_SIZE,
   COLORS,
+  COLORSDARKER,
+  COLORSLIGHTER,
   COLS,
   GAME_STATES,
   KEY,
@@ -17,6 +19,7 @@ import {
   POINTS,
   ROWS,
 } from '../constants';
+import { GraphicsService } from '../graphics.service';
 import { IPiece, Piece } from '../piece.component';
 
 @Component({
@@ -79,7 +82,10 @@ export class BoardComponent implements OnInit {
     [KEY.UP]: (p: Piece): IPiece => p.rotate(p),
   };
 
-  constructor(private boardService: BoardService) {}
+  constructor(
+    private boardService: BoardService,
+    private graphicsService: GraphicsService
+  ) {}
 
   ngOnInit() {
     this.initBoard();
@@ -94,6 +100,9 @@ export class BoardComponent implements OnInit {
     this.ctx.canvas.height = ROWS * BLOCK_SIZE;
 
     this.ctx.scale(BLOCK_SIZE, BLOCK_SIZE);
+    this.ctx.fillStyle = 'black';
+    this.ctx.fillRect(0, 0, this.ctx.canvas.height, this.ctx.canvas.width);
+    this.addOutlines();
   }
 
   private initNext() {
@@ -115,6 +124,9 @@ export class BoardComponent implements OnInit {
 
   private animate(now = 0) {
     this.ctx?.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+    this.ctx.fillStyle = 'black';
+    this.ctx.fillRect(0, 0, this.ctx.canvas.height, this.ctx.canvas.width);
+    this.addOutlines();
 
     this.time.elapsed = now - this.time.start;
     if (this.time.elapsed > this.time.level) {
@@ -133,7 +145,7 @@ export class BoardComponent implements OnInit {
   }
 
   private newPiece() {
-    this.next = new Piece(this.ctx, this.ctxNext);
+    this.next = new Piece(this.ctx, this.ctxNext, this.graphicsService);
     this.next.drawNext();
 
     this.piece = this.next;
@@ -154,8 +166,6 @@ export class BoardComponent implements OnInit {
   }
 
   private isGameOver() {
-    console.log('her');
-
     this.gameState =
       this.piece.y === 0 ? GAME_STATES.GAMEOVER : GAME_STATES.PLAYING;
   }
@@ -176,6 +186,13 @@ export class BoardComponent implements OnInit {
         if (value > 0) {
           this.ctx.fillStyle = COLORS[value];
           this.ctx.fillRect(x, y, 1, 1);
+          this.graphicsService.add3D(
+            this.ctx,
+            x,
+            y,
+            COLORSDARKER[value],
+            COLORSLIGHTER[value]
+          );
         }
       });
     });
@@ -202,10 +219,12 @@ export class BoardComponent implements OnInit {
     console.log(this.requestId);
 
     cancelAnimationFrame(this.requestId);
-    this.ctx.fillStyle = 'black';
+    this.ctx.fillStyle = '#232323';
     this.ctx.fillRect(1, 3, 8, 1.2);
     this.ctx.font = '1px arial';
     this.ctx.fillStyle = 'red';
+    this.ctx.shadowColor = 'red';
+    this.ctx.shadowBlur = 20;
     this.ctx.fillText('GAME OVER!', 1.8, 4);
   }
 
@@ -221,6 +240,22 @@ export class BoardComponent implements OnInit {
       this.level++;
       this.lines -= LINES_PER_LEVEL;
       this.time.level = LEVEL[this.level];
+    }
+  }
+
+  private addOutlines() {
+    for (let index = 1; index < COLS; index++) {
+      this.ctx.fillStyle = 'rgba(0, 255, 255)';
+      this.ctx.shadowColor = 'rgba(0, 132, 132)';
+      this.ctx.shadowBlur = 10;
+      this.ctx.fillRect(index, 0, 0.045, this.ctx.canvas.height);
+    }
+
+    for (let index = 1; index < ROWS; index++) {
+      this.ctx.fillStyle = 'rgba(0, 255, 255)';
+      this.ctx.shadowColor = 'rgba(0, 132, 132, 1)';
+      this.ctx.shadowBlur = 5;
+      this.ctx.fillRect(0, index, this.ctx.canvas.width, 0.045);
     }
   }
 }

@@ -1,5 +1,5 @@
 <div class="grid">
-  <canvas #board class="game-board"></canvas>
+  <canvas #board class="game-board glow"></canvas>
   <div class="right-column">
     <div>
       <h1>Tetris</h1>
@@ -8,7 +8,9 @@
       <p>Level: {{ level }}</p>
       <p>Next block:</p>
       <canvas #next class="next"></canvas>
+      <div class="button-container">
+        <div (click)="onPlay()" class="play-button">Play</div>
+      </div>
     </div>
-    <button (click)="onPlay()" class="play-button">Play</button>
   </div>
 </div>
